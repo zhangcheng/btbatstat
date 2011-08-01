@@ -1,6 +1,6 @@
 import subprocess,re,time,sys,webbrowser
-from Foundation import *
-from AppKit import *
+from Foundation import NSDate,NSObject,NSTimer,NSRunLoop,NSDefaultRunLoopMode
+from AppKit import NSImage,NSStatusBar,NSMenuItem,NSApplication,NSMenu,NSVariableStatusItemLength
 from PyObjCTools import AppHelper
 from optparse import OptionParser
 
@@ -73,34 +73,32 @@ class Timer(NSObject):
 	KeyBatStat = None
 
     MightyMouseBatStatCmd = subprocess.Popen(["/usr/sbin/ioreg", "-rc", "AppleBluetoothHIDMouse"], stdout=subprocess.PIPE).communicate()[0]
-    if MightyMouseBatStatCmd:
+    MightyMouseBatStatCmdOut = re.search('BatteryPercent" = (\d{1,2})', MightyMouseBatStatCmd)
+    if MightyMouseBatStatCmdOut:
 	if debug:
 	    print "Found Apple BT Mighty Mouse..."
 	devicesFound += 1
-    	MightyMouseBatStatCmdOut = re.search('BatteryPercent" = (\d{1,2})', MightyMouseBatStatCmd)
 	MightyMouseBatStat = MightyMouseBatStatCmdOut.group(1)
     else:
 	MightyMouseBatStat = None
 
     MagicMouseBatStatCmd = subprocess.Popen(["/usr/sbin/ioreg", "-rc", "BNBMouseDevice"], stdout=subprocess.PIPE).communicate()[0]
-    if MagicMouseBatStatCmd:
+    MagicMouseBatStatCmdOut = re.search('BatteryPercent" = (\d{1,2})', MagicMouseBatStatCmd)
+    if MagicMouseBatStatCmdOut:
 	if debug:
 	    print "Found Apple BT Magic Mouse..."
 	devicesFound += 1
-    	MagicMouseBatStatCmdOut = re.search('BatteryPercent" = (\d{1,2})', MagicMouseBatStatCmd)
 	MagicMouseBatStat = MagicMouseBatStatCmdOut.group(1)
     else:
 	MagicMouseBatStat = None
 
     TPBatStatCmd = subprocess.Popen(["/usr/sbin/ioreg", "-rc", "BNBTrackpadDevice"], stdout=subprocess.PIPE).communicate()[0]
-    if TPBatStatCmd:
+    TPBatStatCmdOut = re.search('BatteryPercent" = (\d{1,2})', TPBatStatCmd)
+    if TPBatStatCmdOut:
 	if debug:
 	    print "Found Apple BT Magic Trackpad..."
 	devicesFound += 1
-    	TPBatStatCmdOut = re.search('BatteryPercent" = (\d{1,2})', TPBatStatCmd)
 	TPBatStat = TPBatStatCmdOut.group(1)
-        if debug:
-            print "Trackpad battery: ", KeyBatStat
     else:
 	TPBatStat = None
 
@@ -115,7 +113,7 @@ class Timer(NSObject):
       self.statusbar.removeStatusItem_(self.KeyBat)
       self.KeyBat = None
 
-    if MightyMouseBatStat:
+    if MightyMouseBatStat is not None:
       if self.MightyMouseBat is None:
         self.MightyMouseBat = self.statusbar.statusItemWithLength_(NSVariableStatusItemLength)
 	self.MightyMouseBat.setImage_(self.mightyImage)
