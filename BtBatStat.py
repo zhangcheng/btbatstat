@@ -1,11 +1,18 @@
 import subprocess,re,time,sys,webbrowser
 from Foundation import NSDate,NSObject,NSTimer,NSRunLoop,NSDefaultRunLoopMode
-from AppKit import NSImage,NSStatusBar,NSMenuItem,NSApplication,NSMenu,NSVariableStatusItemLength
+from AppKit import NSImage,NSStatusBar,NSMenuItem,NSApplication,NSMenu,NSVariableStatusItemLength,NSRunAlertPanel
 from PyObjCTools import AppHelper
 from optparse import OptionParser
 
 if len(sys.argv) > 1 and sys.argv[1][:4] == '-psn':
   del sys.argv[1]
+
+AboutText = """Writen by Joris Vandalon
+Code License: New BSD License
+
+This software will always be free of charge.
+Donation done on the website and will be much appreciated.
+"""
 
 debug = None
 parser = OptionParser()
@@ -34,17 +41,19 @@ class Timer(NSObject):
 
   #Define menu items
   statusbar = NSStatusBar.systemStatusBar()
-  menuAppName = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('BtBatStat', 'website:', '')
+  menuAbout = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('About BtBatStat', 'about:', '')
   separator_menu_item = NSMenuItem.separatorItem()
   menuQuit = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Quit', 'terminate:', '')
 
-  def website_(self, notification):
-    webbrowser.open("http://code.google.com/p/btbatstat/")
-
+  def about_(self, notification):
+    about = NSRunAlertPanel("BtBatStat 0.8", AboutText , "OK", "Visit Website", None )
+    if about == 0:
+      webbrowser.open("http://code.google.com/p/btbatstat/")
+	
   def applicationDidFinishLaunching_(self, notification):
     #Create menu
     self.menu = NSMenu.alloc().init()
-    self.menu.addItem_(self.menuAppName)
+    self.menu.addItem_(self.menuAbout)
 
     # Get the timer going
     self.timer = NSTimer.alloc().initWithFireDate_interval_target_selector_userInfo_repeats_(start_time, 10.0, self, 'tick:', None, True)
@@ -155,9 +164,8 @@ class Timer(NSObject):
 	self.noDevice = self.statusbar.statusItemWithLength_(NSVariableStatusItemLength)
 	self.noDevice.setImage_(self.noDeviceImage)
         self.noDevice.setHighlightMode_(1)
-        self.menu.removeItem_(self.menuAppName)
-        menuAppName = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('BtBatStat: No Apple bluetooth input device found.', '', '')
-        self.menu.addItem_(menuAppName)
+        menuNotice = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('BtBatStat: No Apple bluetooth input device found.', '', '')
+        self.menu.addItem_(menuNotice)
         self.noDevice.setMenu_(self.menu)
         self.noDevice.setToolTip_('BtBatStat: No Apple bluetooth input device found.')
     elif devicesFound > 0 and self.noDevice is not None:
